@@ -1,0 +1,235 @@
+<div class="admin-dashboard" *ngIf="!isLoading && !errorMessage; else stateTpl">
+  <div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <h1 class="dashboard-title">Admin Dashboard</h1>
+      <p class="dashboard-subtitle">Manage users, roles, and access permissions</p>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div *ngIf="successMessage" class="success-message">
+      {{ successMessage }}
+    </div>
+    
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-container">
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'all'"
+        (click)="activeTab = 'all'">
+        All Users ({{ allUsers.length }})
+      </button>
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'requests'"
+        (click)="activeTab = 'requests'">
+        Access Requests ({{ accessRequests.length }})
+      </button>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="filters-section" *ngIf="activeTab === 'all'">
+      <div class="search-bar">
+        <input 
+          type="text" 
+          placeholder="Search by name or email..." 
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange()"
+          class="search-input">
+        <span class="search-icon">🔍</span>
+      </div>
+      
+      <div class="filter-controls">
+        <select [(ngModel)]="selectedRole" (change)="onFilterChange()" class="filter-select">
+          <option value="all">All Roles</option>
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+        
+        <select [(ngModel)]="selectedProject" (change)="onFilterChange()" class="filter-select">
+          <option value="all">All Projects</option>
+          <option value="not assigned">Not Assigned</option>
+          <option value="Project Alpha">Project Alpha</option>
+          <option value="Project Beta">Project Beta</option>
+          <option value="Project Gamma">Project Gamma</option>
+          <option value="Project Delta">Project Delta</option>
+        </select>
+        
+        <select [(ngModel)]="selectedAccess" (change)="onFilterChange()" class="filter-select">
+          <option value="all">All Access</option>
+          <option value="true">Granted</option>
+          <option value="false">Pending</option>
+        </select>
+        
+        <button (click)="clearFilters()" class="clear-filters-btn">Clear Filters</button>
+      </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="table-container">
+      <table class="users-table" *ngIf="activeTab === 'all'">
+        <thead>
+          <tr>
+            <th>Photo</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Project</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of filteredUsers" class="user-row">
+            <td class="photo-cell">
+              <img 
+                *ngIf="user.profilePhoto; else noPhoto" 
+                [src]="getProfilePhotoUrl(user)" 
+                alt="Profile Photo" 
+                class="user-photo">
+              <ng-template #noPhoto>
+                <div class="no-photo">👤</div>
+              </ng-template>
+            </td>
+            <td class="name-cell">{{ user.firstname }} {{ user.lastname }}</td>
+            <td class="email-cell">{{ user.email }}</td>
+            <td class="role-cell">
+              <span [class]="getRoleBadgeClass(user.role)">{{ user.role }}</span>
+            </td>
+            <td class="project-cell">{{ user.project }}</td>
+            <td class="status-cell">
+              <span [class]="getStatusBadgeClass(user.canAccess)">
+                {{ user.canAccess ? 'Granted' : 'Pending' }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button 
+                (click)="startEditUser(user)" 
+                class="action-btn edit-btn"
+                [disabled]="editingUser === user">
+                {{ editingUser === user ? 'Editing...' : 'Edit' }}
+              </button>
+              <button 
+                (click)="updateUserAccess(user, !user.canAccess)" 
+                class="action-btn"
+                [class]="user.canAccess ? 'revoke-btn' : 'grant-btn'"
+                [disabled]="isUpdating">
+                {{ user.canAccess ? 'Revoke' : 'Grant' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Access Requests Table -->
+      <table class="users-table" *ngIf="activeTab === 'requests'">
+        <thead>
+          <tr>
+            <th>Photo</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Request Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of accessRequests" class="user-row">
+            <td class="photo-cell">
+              <img 
+                *ngIf="user.profilePhoto; else noPhoto" 
+                [src]="getProfilePhotoUrl(user)" 
+                alt="Profile Photo" 
+                class="user-photo">
+              <ng-template #noPhoto>
+                <div class="no-photo">👤</div>
+              </ng-template>
+            </td>
+            <td class="name-cell">{{ user.firstname }} {{ user.lastname }}</td>
+            <td class="email-cell">{{ user.email }}</td>
+            <td class="department-cell">{{ user.department }}</td>
+            <td class="date-cell">{{ user.createdAt | date:'short' }}</td>
+            <td class="actions-cell">
+              <button 
+                (click)="updateUserAccess(user, true)" 
+                class="action-btn grant-btn"
+                [disabled]="isUpdating">
+                Grant Access
+              </button>
+              <button 
+                (click)="startEditUser(user)" 
+                class="action-btn edit-btn">
+                Edit Details
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- No Results -->
+      <div *ngIf="(activeTab === 'all' && filteredUsers.length === 0) || (activeTab === 'requests' && accessRequests.length === 0)" 
+           class="no-results">
+        <div class="no-results-icon">📭</div>
+        <h3>No {{ activeTab === 'all' ? 'users' : 'requests' }} found</h3>
+        <p *ngIf="activeTab === 'all'">Try adjusting your search or filter criteria</p>
+        <p *ngIf="activeTab === 'requests'">No pending access requests at the moment</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div *ngIf="editingUser" class="modal-overlay" (click)="cancelEdit()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Edit User: {{ editingUser.firstname }} {{ editingUser.lastname }}</h3>
+      <button (click)="cancelEdit()" class="close-btn">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Role:</label>
+        <select [(ngModel)]="editRole" class="form-select">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Project:</label>
+        <select [(ngModel)]="editProject" class="form-select">
+          <option value="not assigned">Not Assigned</option>
+          <option value="Project Alpha">Project Alpha</option>
+          <option value="Project Beta">Project Beta</option>
+          <option value="Project Gamma">Project Gamma</option>
+          <option value="Project Delta">Project Delta</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button (click)="cancelEdit()" class="btn btn-secondary">Cancel</button>
+      <button (click)="updateUser()" class="btn btn-primary" [disabled]="isUpdating">
+        {{ isUpdating ? 'Updating...' : 'Update User' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading/Error States -->
+<ng-template #stateTpl>
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <p>Loading admin dashboard...</p>
+  </div>
+  <div class="error-state" *ngIf="!isLoading && errorMessage">
+    <div class="error-icon">❌</div>
+    <h3>Error</h3>
+    <p>{{ errorMessage }}</p>
+    <button (click)="loadAllUsers()" class="retry-btn">Retry</button>
+  </div>
+</ng-template>

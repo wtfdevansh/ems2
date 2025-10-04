@@ -1,0 +1,137 @@
+<div class="user-dashboard" *ngIf="!isLoading && !errorMessage; else stateTpl">
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <button class="edit-mode-toggle" (click)="toggleEditMode()">
+        {{ isEditMode ? 'Cancel' : 'Edit Profile' }}
+      </button>
+      
+      <div class="profile-section">
+        <img *ngIf="userData?.profilePhoto; else noPhoto" 
+             [src]="getProfilePhotoUrl()" 
+             alt="Profile Photo" 
+             class="profile-photo">
+        <ng-template #noPhoto>
+          <div class="placeholder-photo">
+            No Photo
+          </div>
+        </ng-template>
+      </div>
+      
+      <h1 class="user-name">{{ userData?.firstname }} {{ userData?.lastname }}</h1>
+    </div>
+
+    <div class="dashboard-content">
+      <div *ngIf="successMessage" class="success-message">
+        {{ successMessage }}
+      </div>
+
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="field-label">Email Address</div>
+          <p class="field-value" *ngIf="!isEditMode">{{ userData?.email }}</p>
+          <input *ngIf="isEditMode" 
+                 type="email" 
+                 class="field-input" 
+                 [(ngModel)]="editForm.email"
+                 placeholder="Enter email">
+        </div>
+
+        <div class="info-card">
+          <div class="field-label">Password</div>
+          <p class="field-value password-field" *ngIf="!isEditMode">{{ getMaskedPassword() }}</p>
+          <input *ngIf="isEditMode" 
+                 type="password" 
+                 class="field-input password-field" 
+                 [(ngModel)]="editForm.password"
+                 placeholder="Enter new password">
+        </div>
+
+        <div class="info-card">
+          <div class="field-label">First Name</div>
+          <p class="field-value" *ngIf="!isEditMode">{{ userData?.firstname }}</p>
+          <input *ngIf="isEditMode" 
+                 type="text" 
+                 class="field-input" 
+                 [(ngModel)]="editForm.firstname"
+                 placeholder="Enter first name">
+        </div>
+
+        <div class="info-card">
+          <div class="field-label">Last Name</div>
+          <p class="field-value" *ngIf="!isEditMode">{{ userData?.lastname }}</p>
+          <input *ngIf="isEditMode" 
+                 type="text" 
+                 class="field-input" 
+                 [(ngModel)]="editForm.lastname"
+                 placeholder="Enter last name">
+        </div>
+
+        <div class="info-card profile-photo-card">
+          <div class="field-label">Profile Photo</div>
+          <div *ngIf="!isEditMode" class="profile-photo-display">
+            <img *ngIf="userData?.profilePhoto" 
+                 [src]="getProfilePhotoUrl()" 
+                 alt="Profile Photo" 
+                 class="profile-photo-small">
+            <span *ngIf="!userData?.profilePhoto" class="no-photo-text">No photo uploaded</span>
+          </div>
+          <div *ngIf="isEditMode" class="photo-upload-section">
+            <div class="file-input-wrapper">
+              <input type="file" 
+                     id="profilePhoto" 
+                     accept="image/*" 
+                     (change)="onFileSelected($event)"
+                     class="file-input">
+              <label for="profilePhoto" class="file-input-label">
+                {{ selectedFile ? selectedFile.name : 'Choose Photo' }}
+              </label>
+            </div>
+            <button *ngIf="selectedFile" 
+                    class="btn btn-upload" 
+                    (click)="uploadProfilePhoto()" 
+                    [disabled]="isUploading">
+              {{ isUploading ? 'Uploading...' : 'Upload Photo' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="field-label">Department</div>
+          <p class="field-value">{{ userData?.department || 'Not assigned' }}</p>
+          <small style="color: #6c757d; font-style: italic;">*Not editable</small>
+        </div>
+      </div>
+
+      <div class="projects-section">
+        <h3 class="projects-title">Projects</h3>
+        <ul class="projects-list" *ngIf="userData?.project && userData.project !== 'not assigned'; else noProjects">
+          <li class="project-item">{{ userData.project }}</li>
+        </ul>
+        <ng-template #noProjects>
+          <div class="no-projects">No projects assigned</div>
+        </ng-template>
+        <small style="color: #6c757d; font-style: italic;">*Not editable</small>
+      </div>
+
+      <div class="action-buttons" *ngIf="isEditMode">
+        <button class="btn btn-primary" (click)="saveChanges()" [disabled]="isSaving">
+          {{ isSaving ? 'Saving...' : 'Save Changes' }}
+        </button>
+        <button class="btn btn-secondary" (click)="cancelEdit()">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #stateTpl>
+  <div class="loading-state" *ngIf="isLoading">
+    <div style="font-size: 2rem; margin-bottom: 20px;">⏳</div>
+    Loading user data…
+  </div>
+  <div class="error-state" *ngIf="!isLoading && errorMessage">
+    <div style="font-size: 2rem; margin-bottom: 20px;">❌</div>
+    {{ errorMessage }}
+  </div>
+</ng-template>

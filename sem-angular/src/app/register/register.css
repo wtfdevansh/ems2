@@ -1,0 +1,29 @@
+.registerClass{
+    display: flex;
+    width: 30%;
+    flex-direction: column;
+    background-color: rgb(76, 185, 85);
+    border-radius: 25px;
+    padding: 20px;
+    justify-content: center;
+    align-items: center;
+    margin-left: 33%;
+    margin-top: 10%;
+}
+
+.registerInput{
+    display: flex;
+    flex-direction: column;
+}
+
+input , button , select , option{
+    border-radius: 25px;
+    padding: 10px;
+    margin: 5px;
+    border-style: none;
+    width: 80%;
+}
+
+.error-message{
+    color: red;
+}
