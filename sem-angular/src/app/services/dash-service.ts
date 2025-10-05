@@ -9,7 +9,7 @@ export class DashService {
 
   constructor(private http : HttpClient){}
 
-  private baseUrl = 'https://ems2-6ftq.onrender.com/api/dash'
+  private baseUrl = 'https://ems2-1-e0iy.onrender.com/api/dash'
 
   getUserByEmail(email : string): Observable<any>{
 

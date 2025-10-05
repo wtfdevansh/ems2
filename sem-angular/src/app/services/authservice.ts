@@ -7,7 +7,8 @@ import { Observable } from 'rxjs';
 })
 export class Authservice {
 
-  private baseUrl = 'https://ems2-6ftq.onrender.com/api/auth'
+  private baseUrl = 'https://ems2-1-e0iy.onrender.com/api/auth'
+ 
 
 
   constructor(private http : HttpClient){}
